@@ -11,20 +11,26 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
 
 import com.andrognito.patternlockview.PatternLockView;
 import com.andrognito.patternlockview.listener.PatternLockViewListener;
 import com.andrognito.patternlockview.utils.PatternLockUtils;
 import com.example.applock.adapter.AppAdapter;
 import com.example.applock.model.AppItem;
+import com.example.applock.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    LinearLayout layout_permission;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
         AppAdapter appAdapter = new AppAdapter(this,getAllApps());
         recyclerView.setAdapter(appAdapter);
+        layout_permission = findViewById(R.id.layout_permission);
     }
 
     private List<AppItem> getAllApps() {
@@ -81,5 +88,25 @@ public class MainActivity extends AppCompatActivity {
             finish();
 
         return true;
+    }
+
+    public void setPermission(View view) {
+        startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+
+    }
+
+    @Override
+    protected  void onResume() {
+        super.onResume();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Utils.checkPermission(this)) {
+                layout_permission.setVisibility(View.GONE);
+
+            } else {
+                layout_permission.setVisibility(View.VISIBLE);
+
+            }
+
+        }
     }
 }
