@@ -2,6 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.applock">
+    
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions"/>
 
@@ -22,6 +27,27 @@
         <activity android:name=".MainActivity">
 
         </activity>
+
+        <receiver android:name=".broadcast.RecieverAppLock"
+            android:exported="true"
+            android:enabled="true"/>
+
+        <receiver android:name=".broadcast.RestartServiceWhenStooped"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
+
+        <service android:name=".services.ServiceAppLock"
+            android:exported="false"
+            android:enabled="true"/>
+        
+        <service android:name=".services.ServiceAppLockJobIntent"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
+
     </application>
 
 </manifest>

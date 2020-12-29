@@ -6,6 +6,8 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.core.app.JobIntentService;
 
+import com.example.applock.broadcast.RecieverAppLock;
+
 public class ServiceAppLockJobIntent extends JobIntentService {
     private static final int JOB_ID = 15462;
 
@@ -17,6 +19,42 @@ public class ServiceAppLockJobIntent extends JobIntentService {
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-
+        runAppLock();
     }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        BackgroundManager.getInstance().init(this).startService();
+
+        BackgroundManager.getInstance().init(this).startAlarmManager();
+        super.onTaskRemoved(rootIntent);
+    }
+
+    @Override
+    public void onDestroy() {
+        BackgroundManager.getInstance().init(this).startService();
+
+        BackgroundManager.getInstance().init(this).startAlarmManager();
+        super.onDestroy();
+    }
+
+    private void runAppLock(){
+        long endTime = System.currentTimeMillis()+210;
+        while(System.currentTimeMillis() < endTime){
+            synchronized (this){
+                try {
+                    Intent intent = new Intent(this, RecieverAppLock.class);
+                    sendBroadcast(intent);
+
+                    wait(endTime - System.currentTimeMillis());
+
+                }catch (InterruptedException e){
+                    e.printStackTrace();
+
+                }
+
+            }
+        }
+    }
+
 }

@@ -2,10 +2,16 @@ package com.example.applock;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -15,6 +21,8 @@ import com.andrognito.patternlockview.PatternLockView;
 import com.andrognito.patternlockview.listener.PatternLockViewListener;
 import com.andrognito.patternlockview.utils.PatternLockUtils;
 import com.example.applock.model.Password;
+import com.example.applock.services.BackgroundManager;
+import com.example.applock.utils.Utils;
 import com.shuhart.stepview.StepView;
 
 import java.util.List;
@@ -35,6 +43,9 @@ public class PatternLock extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_pattern_lock);
 
+        BackgroundManager.getInstance().init(this).startService();
+
+        initIconApp();
 
         stepView = findViewById(R.id.step_view);
         normalLayout = findViewById(R.id.normal_layout);
@@ -66,6 +77,22 @@ public class PatternLock extends AppCompatActivity {
 
 
     }
+
+    private void initIconApp() {
+        if(getIntent().getStringExtra("broadcast_reciver") != null)if(getIntent().getStringExtra("broadcast_reciver") != null){
+            ImageView icon = findViewById(R.id.icon_app);
+            String current_app = new Utils(this).getLastApp();
+            ApplicationInfo applicationInfo = null;
+            try {
+                applicationInfo = getPackageManager().getApplicationInfo(current_app,0);
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            icon.setImageDrawable(applicationInfo.loadIcon(getPackageManager()));
+        }
+    }
+
     private void initPatternListener(){
 
         final PatternLockView patternLockView = findViewById(R.id.pattern_view);
@@ -134,7 +161,10 @@ public class PatternLock extends AppCompatActivity {
     }
 
     private void startAct() {
-        startActivity(new Intent(this,MainActivity.class));
+
+        if(getIntent().getStringExtra("broadcast_reciver") == null){
+            startActivity(new Intent(this,MainActivity.class));
+        }
         finish();
     }
 
@@ -146,9 +176,24 @@ public class PatternLock extends AppCompatActivity {
             statusPassword.setText(utilsPassword.status_first_step);
 
         }else{
+            startCurrentHomePackage();
             finish();
             super.onBackPressed();
         }
+
+    }
+
+    private void startCurrentHomePackage() {
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_HOME);
+        ResolveInfo resolveInfo = getPackageManager().resolveActivity(intent,PackageManager.MATCH_DEFAULT_ONLY);
+
+        ActivityInfo activityInfo = resolveInfo.activityInfo;
+        ComponentName componentName = new ComponentName(activityInfo.applicationInfo.packageName,activityInfo.name);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        startActivity(intent);
+
+        new Utils(this).clearLastApp();
 
     }
 }
